@@ -103,6 +103,38 @@ aside .text-xs { font-size: 16px !important; } /* 列表文字 */
 .collapsible-content { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
 .collapsed { max-height: 0 !important; opacity: 0; pointer-events: none; }
 
-/* 虚拟列表容器 */
-#virtual-tree-root { position: relative; overflow-y: auto; height: 100%; }
-.virtual-tree-content { position: absolute; top: 0; left: 0; width: 100%; }
+/* 可拖动分界线样式 */
+.resizer {
+    width: 8px;
+    cursor: col-resize;
+    background-color: transparent;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 40;
+    margin-left: -4px;
+    margin-right: -4px;
+}
+
+.resizer:hover, .resizer-active {
+    background-color: var(--brand-light);
+}
+
+.resizer-handle {
+    width: 2px;
+    height: 40px;
+    background-color: var(--border);
+    border-radius: 1px;
+    transition: background-color 0.2s;
+}
+
+.resizer:hover .resizer-handle {
+    background-color: var(--brand);
+}
+
+/* 详情面板动画优化 */
+aside {
+    transition: width 0.05s linear;
+}

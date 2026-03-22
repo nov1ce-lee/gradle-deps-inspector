@@ -16,6 +16,40 @@ createApp({
         const insightDependency = ref('');
         const copiedIndex = ref(-1);
 
+        // 详情面板宽度拖动逻辑
+        const rightPanelWidth = ref(380);
+        const isResizing = ref(false);
+
+        const startResizing = (e) => {
+            isResizing.value = true;
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', stopResizing);
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        };
+
+        const handleMouseMove = (e) => {
+            if (!isResizing.value) return;
+            // 计算新的宽度：屏幕宽度 - 鼠标位置 - 容器边距
+            const container = document.querySelector('.max-w-\\[1800px\\]');
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                const newWidth = rect.right - e.clientX;
+                // 限制拖动范围：300px - 800px
+                if (newWidth >= 300 && newWidth <= 800) {
+                    rightPanelWidth.value = newWidth;
+                }
+            }
+        };
+
+        const stopResizing = () => {
+            isResizing.value = false;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', stopResizing);
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+        };
+
         // 虚拟列表状态：使用固定高度确保渲染稳定性，防止错行
         const itemHeight = ref(32); 
         const containerHeight = ref(800);
@@ -179,6 +213,8 @@ createApp({
             rawInput, hasData, treeData, searchQuery, selectedIdx, currentMatchIdx, matchCount,
             moduleName, selectedConfig, extraParams, insightDependency, generatedCommands, copiedIndex,
             generatorExpanded, process, reset, copyToClipboard,
+            // 拖动逻辑
+            rightPanelWidth, startResizing,
             // 虚拟列表
             scrollContainer, handleScroll, visibleNodes, totalHeight, offsetY,
             // 逻辑
