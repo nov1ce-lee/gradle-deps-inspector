@@ -51,7 +51,7 @@ createApp({
         };
 
         // 虚拟列表状态：使用固定高度确保渲染稳定性，防止错行
-        const itemHeight = ref(32); 
+        const itemHeight = ref(40); // 36px height + 4px total margin
         const containerHeight = ref(800);
         const scrollTop = ref(0);
         const scrollContainer = ref(null);

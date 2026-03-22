@@ -32,50 +32,80 @@ body {
 
 .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
 
-/* 树节点样式：优化精致感，修复错行 */
+/* 树节点样式：重塑视觉风格，提升精致感 */
 .tree-line {
-    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 0; 
-    margin: 0; 
-    padding: 0;
-    height: 32px; /* 使用固定像素高度确保与 JS 绝对同步 */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px; /* 恢复圆角，增加精致感 */
+    margin: 2px 4px; /* 增加一点左右边距，使高亮框不贴边 */
+    height: 36px; /* 稍微增加高度，给文字留出呼吸空间 */
     display: flex;
     align-items: center;
-    line-height: 32px;
-    white-space: nowrap; /* 防止换行导致的错行 */
+    line-height: 36px;
+    white-space: nowrap;
     overflow: hidden;
+    position: relative;
+    border: 1px solid transparent;
 }
-.tree-line:hover { background-color: var(--brand-light); }
 
-/* 依赖树内部字体：去“粗”化，提升精致感 */
-.tree-line .text-\[10px\] { font-size: 0.85rem !important; opacity: 0.5; font-weight: 400; } 
-.tree-line .text-\[13px\] { font-size: 0.95rem !important; font-weight: 500; } /* 降低字重，更显精致 */
-.tree-line .text-\[11px\] { font-size: 0.8rem !important; opacity: 0.6; } 
-.tree-line .node-prefix { 
-    font-size: 1.1rem !important; 
-    line-height: 32px; 
-    height: 32px;
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace; /* 使用等宽字体确保符号对齐 */
-    letter-spacing: -1px;
-} 
+.tree-line:hover {
+    background-color: #f1f5f9; 
+    border-color: #e2e8f0;
+}
 
-.is-selected { background-color: var(--brand) !important; color: white !important; }
-.is-selected .node-prefix { color: rgba(255, 255, 255, 0.4); }
-.is-selected .text-slate-400, .is-selected .opacity-40, .is-selected .opacity-60, .is-selected .font-mono { color: rgba(255, 255, 255, 0.8) !important; opacity: 1; }
-.is-selected .bg-slate-100 { background-color: rgba(255, 255, 255, 0.2) !important; color: white !important; }
+/* 选中状态：更现代的视觉表现 */
+.is-selected { 
+    background-color: #ebf5ff !important; 
+    border-color: #bfdbfe !important;
+    color: #1e40af !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
 
-.in-path { background-color: #fffbeb !important; border-left: 4px solid #f59e0b !important; }
+.is-selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 3px;
+    background-color: #3b82f6;
+    border-radius: 0 4px 4px 0;
+}
 
-/* 恢复之前的绿色高亮配色，并优化高亮下的版本号颜色 */
-.match-search { background-color: #dcfce7 !important; border-bottom: 2px solid #22c55e; }
-.match-search span { color: #064e3b !important; } /* 强制深绿色，确保清晰度 */
-.match-search .bg-slate-100 { background-color: #bbf7d0 !important; color: #064e3b !important; }
+.is-selected .node-prefix { color: #93c5fd; }
+.is-selected .text-slate-400, .is-selected .opacity-40, .is-selected .opacity-60 { color: #60a5fa !important; opacity: 1; }
+.is-selected .bg-slate-100 { background-color: #dbeafe !important; color: #1e40af !important; }
 
-.current-focus { background-color: #22c55e !important; color: white !important; }
+/* 搜索高亮：更柔和的背景 + 底部强调线 */
+.match-search {
+    background-color: #f0fdf4 !important; 
+    border-bottom: 2px solid #22c55e !important;
+    border-radius: 4px;
+}
+.match-search span { color: #166534 !important; }
+.match-search .bg-slate-100 { background-color: #dcfce7 !important; color: #166534 !important; }
+
+/* 当前聚焦：醒目的绿色圆点/边框 */
+.current-focus {
+    background-color: #22c55e !important; 
+    color: white !important;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
 .current-focus span, .current-focus .bg-slate-100 { color: white !important; background-color: rgba(255, 255, 255, 0.2) !important; }
 
-.node-prefix { color: #cbd5e1; letter-spacing: -2px; user-select: none; }
+/* 依赖树内部字体：精调字号与间距 */
+.tree-line .text-\[10px\] { font-size: 0.85rem !important; opacity: 0.4; font-weight: 400; font-family: 'Inter', sans-serif; } 
+.tree-line .text-\[13px\] { font-size: 1rem !important; font-weight: 600; font-family: 'Inter', sans-serif; letter-spacing: -0.01em; } 
+.tree-line .text-\[11px\] { font-size: 0.85rem !important; opacity: 0.5; font-family: 'JetBrains Mono', monospace; } 
+.tree-line .node-prefix { 
+    font-size: 1rem !important; 
+    line-height: 36px; 
+    height: 36px;
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -2px;
+    opacity: 0.3; /* 符号更加淡雅，不喧宾夺主 */
+}
 
 /* 右侧详情面板字体放大 */
 aside h2 { font-size: 28px !important; } /* Artifact ID */
