@@ -16,15 +16,8 @@ createApp({
         const insightDependency = ref('');
         const copiedIndex = ref(-1);
 
-        // 虚拟列表状态：根据 rem 自动计算高度以实现自适应
-        const getBaseFontSize = () => {
-            const width = window.innerWidth;
-            if (width >= 1920) return 20;
-            if (width >= 1440) return 18;
-            return 16;
-        };
-
-        const itemHeight = ref(getBaseFontSize() * 1.5); // 1.5rem
+        // 虚拟列表状态：使用固定高度确保渲染稳定性，防止错行
+        const itemHeight = ref(32); 
         const containerHeight = ref(800);
         const scrollTop = ref(0);
         const scrollContainer = ref(null);
@@ -49,8 +42,6 @@ createApp({
             lucide.createIcons();
             window.addEventListener('resize', () => {
                 if (scrollContainer.value) containerHeight.value = scrollContainer.value.clientHeight;
-                // 窗口缩放时重新计算 itemHeight 以适配自适应布局
-                itemHeight.value = getBaseFontSize() * 1.5;
             });
         });
 

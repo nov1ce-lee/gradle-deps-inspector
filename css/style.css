@@ -16,57 +16,48 @@ body {
     background-color: var(--bg-canvas);
     color: var(--text-main);
     letter-spacing: -0.01em;
-    font-size: 1.25rem; /* 使用相对单位，配合响应式字号 */
+    font-size: 1rem; /* 恢复标准基础字号 */
 }
 
-/* 移除固定 zoom，改用媒体查询自适应 */
-#app {
-    width: 100%;
-    height: 100%;
-}
-
-/* 针对不同屏幕尺寸调整基础字号，实现自适应放大 */
+/* 针对不同屏幕尺寸调整基础字号 */
 @media (min-width: 1920px) {
-    html { font-size: 20px; } /* 大屏幕 (25寸+) 保持较大比例 */
+    html { font-size: 20px; }
 }
 @media (max-width: 1919px) and (min-width: 1440px) {
-    html { font-size: 18px; } /* 中等屏幕 (21-24寸) */
+    html { font-size: 18px; }
 }
 @media (max-width: 1439px) {
-    html { font-size: 16px; } /* 小屏幕 (笔记本等) */
+    html { font-size: 16px; }
 }
 
 .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
 
-/* 自定义滚动条 */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-/* 树节点样式：极限压缩行高，确保符号 | 物理连接 */
+/* 树节点样式：优化精致感，修复错行 */
 .tree-line {
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 0; 
     margin: 0; 
     padding: 0;
-    height: 1.5rem; /* 使用相对单位，随字号自动缩放 */
+    height: 32px; /* 使用固定像素高度确保与 JS 绝对同步 */
     display: flex;
     align-items: center;
-    line-height: 1.5rem;
-    overflow: visible;
+    line-height: 32px;
+    white-space: nowrap; /* 防止换行导致的错行 */
+    overflow: hidden;
 }
 .tree-line:hover { background-color: var(--brand-light); }
 
-/* 依赖树内部字体，使用 rem 确保随全局自适应 */
-.tree-line .text-\[10px\] { font-size: 0.85rem !important; line-height: 1.5rem; } 
-.tree-line .text-\[13px\] { font-size: 1rem !important; line-height: 1.5rem; font-weight: 700; } 
-.tree-line .text-\[11px\] { font-size: 0.85rem !important; line-height: 1.5rem; } 
+/* 依赖树内部字体：去“粗”化，提升精致感 */
+.tree-line .text-\[10px\] { font-size: 0.85rem !important; opacity: 0.5; font-weight: 400; } 
+.tree-line .text-\[13px\] { font-size: 0.95rem !important; font-weight: 500; } /* 降低字重，更显精致 */
+.tree-line .text-\[11px\] { font-size: 0.8rem !important; opacity: 0.6; } 
 .tree-line .node-prefix { 
     font-size: 1.1rem !important; 
-    line-height: 1.5rem; 
-    height: 1.5rem;
+    line-height: 32px; 
+    height: 32px;
     display: inline-block;
+    font-family: 'JetBrains Mono', monospace; /* 使用等宽字体确保符号对齐 */
+    letter-spacing: -1px;
 } 
 
 .is-selected { background-color: var(--brand) !important; color: white !important; }
