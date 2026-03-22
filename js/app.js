@@ -17,7 +17,7 @@ createApp({
         const copiedIndex = ref(-1);
 
         // 虚拟列表状态
-        const itemHeight = 40; // 紧凑高度 (匹配 CSS 中的 .tree-line height)
+        const itemHeight = 32; // 极限压缩高度，确保符号连贯 (匹配 CSS 中的 .tree-line height)
         const containerHeight = ref(800);
         const scrollTop = ref(0);
         const scrollContainer = ref(null);

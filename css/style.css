@@ -16,10 +16,10 @@ body {
     background-color: var(--bg-canvas);
     color: var(--text-main);
     letter-spacing: -0.01em;
-    font-size: 24px; /* 进一步增大字号 (从 20px 增加到 24px) */
+    font-size: 26px; /* 再次整体增大基础字号 */
 }
 
-.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
 
 /* 自定义滚动条 */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -27,17 +27,25 @@ body {
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* 树节点样式：大幅压缩行间距，保持大字号下的紧凑感 */
+/* 树节点样式：极限压缩行高，确保符号 | 能够连起来 */
 .tree-line {
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 6px;
-    margin: 0; /* 彻底移除外边距 */
-    height: 40px; /* 大幅压缩高度，使字号充满行高 (紧凑布局) */
+    border-radius: 0; /* 移除圆角以确保背景色在高亮时连成一片 */
+    margin: 0; 
+    height: 32px; /* 进一步压缩高度，确保符号连贯性 */
     display: flex;
     align-items: center;
+    line-height: 32px;
 }
 .tree-line:hover { background-color: var(--brand-light); }
-.is-selected { background-color: var(--brand) !important; color: white !important; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3); }
+
+/* 依赖树内部字体全面放大 */
+.tree-line .text-\[10px\] { font-size: 18px !important; line-height: 1; } /* Group ID */
+.tree-line .text-\[13px\] { font-size: 22px !important; line-height: 1; } /* Artifact ID */
+.tree-line .text-\[11px\] { font-size: 18px !important; line-height: 1; } /* Version */
+.tree-line .node-prefix { font-size: 24px !important; line-height: 32px; } /* 树形符号 | +--- */
+
+.is-selected { background-color: var(--brand) !important; color: white !important; }
 .is-selected .node-prefix { color: rgba(255, 255, 255, 0.4); }
 .is-selected .text-slate-400, .is-selected .opacity-40, .is-selected .opacity-60, .is-selected .font-mono { color: rgba(255, 255, 255, 0.8) !important; opacity: 1; }
 .is-selected .bg-slate-100 { background-color: rgba(255, 255, 255, 0.2) !important; color: white !important; }
@@ -45,14 +53,22 @@ body {
 .in-path { background-color: #fffbeb !important; border-left: 4px solid #f59e0b !important; }
 
 /* 恢复之前的绿色高亮配色，并优化高亮下的版本号颜色 */
-.match-search { background-color: #dcfce7 !important; border-bottom: 3px solid #22c55e; }
+.match-search { background-color: #dcfce7 !important; border-bottom: 2px solid #22c55e; }
 .match-search span { color: #064e3b !important; } /* 强制深绿色，确保清晰度 */
 .match-search .bg-slate-100 { background-color: #bbf7d0 !important; color: #064e3b !important; }
 
-.current-focus { background-color: #22c55e !important; color: white !important; box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4); }
+.current-focus { background-color: #22c55e !important; color: white !important; }
 .current-focus span, .current-focus .bg-slate-100 { color: white !important; background-color: rgba(255, 255, 255, 0.2) !important; }
 
-.node-prefix { color: #cbd5e1; letter-spacing: -1px; user-select: none; }
+.node-prefix { color: #cbd5e1; letter-spacing: -2px; user-select: none; }
+
+/* 右侧详情面板字体放大 */
+aside h2 { font-size: 28px !important; } /* Artifact ID */
+aside p { font-size: 18px !important; } /* Group ID */
+aside .text-\[9px\] { font-size: 16px !important; } /* 标签文字如“解析版本” */
+aside .text-lg { font-size: 22px !important; } /* 版本号数字 */
+aside h3 { font-size: 18px !important; } /* 小标题 */
+aside .text-xs { font-size: 16px !important; } /* 列表文字 */
 
 /* 玻璃拟态效果 */
 .glass {
