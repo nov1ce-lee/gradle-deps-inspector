@@ -51,11 +51,11 @@
                             <p class="text-slate-500 mt-2">请在下方粘贴 <code>gradle dependencies</code> 命令的控制台输出</p>
                         </div>
                         
-                        <div class="relative group">
+                        <div class="relative group w-full">
                             <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                            <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xl">
+                            <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xl flex flex-col">
                                 <textarea v-model="rawInput" 
-                                    class="w-full h-[400px] p-6 mono text-sm focus:outline-none resize-none placeholder:text-slate-300" 
+                                    class="w-full h-[50vh] min-h-[200px] max-h-[600px] p-6 mono text-sm focus:outline-none resize-none placeholder:text-slate-300" 
                                     placeholder="例如：
 +--- org.springframework.boot:spring-boot-starter:3.1.0
 |    +--- org.springframework.boot:spring-boot:3.1.0
