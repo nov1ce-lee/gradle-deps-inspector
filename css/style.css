@@ -16,12 +16,13 @@ body {
     background-color: var(--bg-canvas);
     color: var(--text-main);
     letter-spacing: -0.01em;
+    font-size: 16px; /* 增大基础字号 */
 }
 
-.mono { font-family: 'JetBrains Mono', monospace; }
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.95em; }
 
 /* 自定义滚动条 */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -29,12 +30,15 @@ body {
 /* 树节点样式 */
 .tree-line {
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 6px;
-    margin: 1px 0;
+    border-radius: 8px;
+    margin: 2px 0;
+    height: 44px; /* 与 JS 中的 itemHeight 保持一致 */
 }
 .tree-line:hover { background-color: var(--brand-light); }
-.is-selected { background-color: var(--brand-light) !important; color: var(--brand-dark); }
-.is-selected .node-prefix { color: #93c5fd; }
+.is-selected { background-color: var(--brand) !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+.is-selected .node-prefix { color: rgba(255, 255, 255, 0.4); }
+.is-selected .text-slate-400, .is-selected .opacity-40, .is-selected .opacity-60 { color: rgba(255, 255, 255, 0.7) !important; opacity: 1; }
+.is-selected .bg-slate-100 { background-color: rgba(255, 255, 255, 0.2) !important; }
 
 .in-path { background-color: #fffbeb !important; border-left: 3px solid #f59e0b !important; }
 .match-search { background-color: #dcfce7 !important; border-bottom: 2px solid #22c55e; }

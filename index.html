@@ -37,9 +37,10 @@
             </div>
         </header>
 
-        <main class="flex-1 flex overflow-hidden">
-            <!-- 左侧面板：导入与树视图 -->
-            <section class="flex-1 flex flex-col bg-white border-r border-slate-200 relative">
+        <main class="flex-1 flex justify-center overflow-hidden bg-slate-50">
+            <div class="max-w-[1440px] w-full flex overflow-hidden bg-white shadow-2xl my-4 mx-4 rounded-3xl border border-slate-200">
+                <!-- 左侧面板：导入与树视图 -->
+                <section class="flex-1 flex flex-col border-r border-slate-200 relative overflow-hidden">
                 <!-- 欢迎/导入界面 -->
                 <div v-if="!hasData" class="flex-1 flex flex-col items-center justify-center p-8 bg-[#fdfdff]">
                     <div class="w-full max-w-2xl space-y-8 animate-slide-in">
@@ -267,6 +268,7 @@
                     </div>
                 </div>
             </aside>
+            </div>
         </main>
     </div>
 

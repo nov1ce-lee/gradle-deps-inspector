@@ -17,7 +17,7 @@ createApp({
         const copiedIndex = ref(-1);
 
         // 虚拟列表状态
-        const itemHeight = 32; // px
+        const itemHeight = 44; // px (稍微增加一点间距)
         const containerHeight = ref(800);
         const scrollTop = ref(0);
         const scrollContainer = ref(null);
