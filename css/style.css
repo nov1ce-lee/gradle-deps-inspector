@@ -138,3 +138,17 @@ aside .text-xs { font-size: 16px !important; } /* 列表文字 */
 aside {
     transition: width 0.05s linear;
 }
+
+/* 虚拟列表容器：修复滚动失效 */
+#virtual-tree-root { 
+    position: relative; 
+    overflow-y: auto; 
+    flex: 1; /* 填充剩余空间 */
+    height: 100%;
+}
+.virtual-tree-content { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+}
