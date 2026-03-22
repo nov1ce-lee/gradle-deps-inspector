@@ -16,11 +16,24 @@ body {
     background-color: var(--bg-canvas);
     color: var(--text-main);
     letter-spacing: -0.01em;
-    font-size: 16px; /* 恢复基础字号，由全局缩放控制 */
+    font-size: 1.25rem; /* 使用相对单位，配合响应式字号 */
 }
 
+/* 移除固定 zoom，改用媒体查询自适应 */
 #app {
-    zoom: 1.25; /* 整个页面默认比例调大 25% */
+    width: 100%;
+    height: 100%;
+}
+
+/* 针对不同屏幕尺寸调整基础字号，实现自适应放大 */
+@media (min-width: 1920px) {
+    html { font-size: 20px; } /* 大屏幕 (25寸+) 保持较大比例 */
+}
+@media (max-width: 1919px) and (min-width: 1440px) {
+    html { font-size: 18px; } /* 中等屏幕 (21-24寸) */
+}
+@media (max-width: 1439px) {
+    html { font-size: 16px; } /* 小屏幕 (笔记本等) */
 }
 
 .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
@@ -37,24 +50,24 @@ body {
     border-radius: 0; 
     margin: 0; 
     padding: 0;
-    height: 24px; /* 极限压缩高度，消除行间距 */
+    height: 1.5rem; /* 使用相对单位，随字号自动缩放 */
     display: flex;
     align-items: center;
-    line-height: 24px;
+    line-height: 1.5rem;
     overflow: visible;
 }
 .tree-line:hover { background-color: var(--brand-light); }
 
-/* 依赖树内部字体放大，并微调垂直位置 */
-.tree-line .text-\[10px\] { font-size: 14px !important; line-height: 24px; } /* Group ID */
-.tree-line .text-\[13px\] { font-size: 16px !important; line-height: 24px; font-weight: 700; } /* Artifact ID */
-.tree-line .text-\[11px\] { font-size: 14px !important; line-height: 24px; } /* Version */
+/* 依赖树内部字体，使用 rem 确保随全局自适应 */
+.tree-line .text-\[10px\] { font-size: 0.85rem !important; line-height: 1.5rem; } 
+.tree-line .text-\[13px\] { font-size: 1rem !important; line-height: 1.5rem; font-weight: 700; } 
+.tree-line .text-\[11px\] { font-size: 0.85rem !important; line-height: 1.5rem; } 
 .tree-line .node-prefix { 
-    font-size: 18px !important; 
-    line-height: 24px; 
-    height: 24px;
+    font-size: 1.1rem !important; 
+    line-height: 1.5rem; 
+    height: 1.5rem;
     display: inline-block;
-} /* 树形符号 */
+} 
 
 .is-selected { background-color: var(--brand) !important; color: white !important; }
 .is-selected .node-prefix { color: rgba(255, 255, 255, 0.4); }

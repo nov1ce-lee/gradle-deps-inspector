@@ -16,16 +16,23 @@ createApp({
         const insightDependency = ref('');
         const copiedIndex = ref(-1);
 
-        // 虚拟列表状态
-        const itemHeight = 24; // 极限压缩高度，消除行间距
+        // 虚拟列表状态：根据 rem 自动计算高度以实现自适应
+        const getBaseFontSize = () => {
+            const width = window.innerWidth;
+            if (width >= 1920) return 20;
+            if (width >= 1440) return 18;
+            return 16;
+        };
+
+        const itemHeight = ref(getBaseFontSize() * 1.5); // 1.5rem
         const containerHeight = ref(800);
         const scrollTop = ref(0);
         const scrollContainer = ref(null);
 
-        const totalHeight = computed(() => treeData.value.length * itemHeight);
-        const visibleCount = computed(() => Math.ceil(containerHeight.value / itemHeight) + 10);
-        const startIndex = computed(() => Math.floor(scrollTop.value / itemHeight));
-        const offsetY = computed(() => startIndex.value * itemHeight);
+        const totalHeight = computed(() => treeData.value.length * itemHeight.value);
+        const visibleCount = computed(() => Math.ceil(containerHeight.value / itemHeight.value) + 10);
+        const startIndex = computed(() => Math.floor(scrollTop.value / itemHeight.value));
+        const offsetY = computed(() => startIndex.value * itemHeight.value);
         
         const visibleNodes = computed(() => {
             return treeData.value.slice(startIndex.value, startIndex.value + visibleCount.value).map((node, i) => ({
@@ -42,6 +49,8 @@ createApp({
             lucide.createIcons();
             window.addEventListener('resize', () => {
                 if (scrollContainer.value) containerHeight.value = scrollContainer.value.clientHeight;
+                // 窗口缩放时重新计算 itemHeight 以适配自适应布局
+                itemHeight.value = getBaseFontSize() * 1.5;
             });
         });
 
@@ -65,7 +74,7 @@ createApp({
             updatePathHighlight(idx);
             
             nextTick(() => {
-                const targetScroll = idx * itemHeight - (containerHeight.value / 2) + (itemHeight / 2);
+                const targetScroll = idx * itemHeight.value - (containerHeight.value / 2) + (itemHeight.value / 2);
                 if (scrollContainer.value) {
                     scrollContainer.value.scrollTo({
                         top: Math.max(0, targetScroll),
