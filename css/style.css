@@ -16,34 +16,45 @@ body {
     background-color: var(--bg-canvas);
     color: var(--text-main);
     letter-spacing: -0.01em;
-    font-size: 26px; /* 再次整体增大基础字号 */
+    font-size: 16px; /* 恢复基础字号，由全局缩放控制 */
+}
+
+#app {
+    zoom: 1.25; /* 整个页面默认比例调大 25% */
 }
 
 .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
 
 /* 自定义滚动条 */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* 树节点样式：极限压缩行高，确保符号 | 能够连起来 */
+/* 树节点样式：极限压缩行高，确保符号 | 物理连接 */
 .tree-line {
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 0; /* 移除圆角以确保背景色在高亮时连成一片 */
+    border-radius: 0; 
     margin: 0; 
-    height: 32px; /* 进一步压缩高度，确保符号连贯性 */
+    padding: 0;
+    height: 24px; /* 极限压缩高度，消除行间距 */
     display: flex;
     align-items: center;
-    line-height: 32px;
+    line-height: 24px;
+    overflow: visible;
 }
 .tree-line:hover { background-color: var(--brand-light); }
 
-/* 依赖树内部字体全面放大 */
-.tree-line .text-\[10px\] { font-size: 18px !important; line-height: 1; } /* Group ID */
-.tree-line .text-\[13px\] { font-size: 22px !important; line-height: 1; } /* Artifact ID */
-.tree-line .text-\[11px\] { font-size: 18px !important; line-height: 1; } /* Version */
-.tree-line .node-prefix { font-size: 24px !important; line-height: 32px; } /* 树形符号 | +--- */
+/* 依赖树内部字体放大，并微调垂直位置 */
+.tree-line .text-\[10px\] { font-size: 14px !important; line-height: 24px; } /* Group ID */
+.tree-line .text-\[13px\] { font-size: 16px !important; line-height: 24px; font-weight: 700; } /* Artifact ID */
+.tree-line .text-\[11px\] { font-size: 14px !important; line-height: 24px; } /* Version */
+.tree-line .node-prefix { 
+    font-size: 18px !important; 
+    line-height: 24px; 
+    height: 24px;
+    display: inline-block;
+} /* 树形符号 */
 
 .is-selected { background-color: var(--brand) !important; color: white !important; }
 .is-selected .node-prefix { color: rgba(255, 255, 255, 0.4); }
