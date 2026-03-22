@@ -17,7 +17,7 @@ createApp({
         const copiedIndex = ref(-1);
 
         // 详情面板宽度拖动逻辑
-        const rightPanelWidth = ref(380);
+        const rightPanelWidth = ref(460); // 默认分界线左移约 2cm (从 380 调至 460)
         const isResizing = ref(false);
 
         const startResizing = (e) => {
