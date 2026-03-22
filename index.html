@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aether Gradle Insight - 深度依赖分析工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --brand: #2563eb;
+            --brand-light: #eff6ff;
+            --brand-dark: #1e40af;
+            --bg-canvas: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 树节点样式 */
+        .tree-line {
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 6px;
+            margin: 1px 0;
+        }
+        .tree-line:hover { background-color: var(--brand-light); }
+        .is-selected { background-color: var(--brand-light) !important; color: var(--brand-dark); }
+        .is-selected .node-prefix { color: #93c5fd; }
+        
+        .in-path { background-color: #fffbeb !important; border-left: 3px solid #f59e0b !important; }
+        .match-search { background-color: #dcfce7 !important; border-bottom: 2px solid #22c55e; }
+        .current-focus { background-color: #22c55e !important; color: white !important; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
+        
+        .node-prefix { color: #cbd5e1; letter-spacing: -1px; user-select: none; }
+        
+        /* 玻璃拟态效果 */
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 动画 */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+
+        .collapsible-content { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .collapsed { max-height: 0 !important; opacity: 0; pointer-events: none; }
+
+        /* 虚拟列表容器 */
+        #virtual-tree-root { position: relative; overflow-y: auto; height: 100%; }
+        .virtual-tree-content { position: absolute; top: 0; left: 0; width: 100%; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+    <div id="app" class="h-full flex flex-col" v-cloak @keydown.esc="searchQuery = ''">
+        <!-- 现代页头 -->
+        <header class="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-50">
+            <div class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200">
+                    <i data-lucide="layers-2" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold tracking-tight text-slate-900">Aether Gradle <span class="text-blue-600">Insight</span></h1>
+                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">下一代依赖智能分析平台</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div v-if="hasData" class="flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    已解析 {{treeData.length}} 个节点
+                </div>
+                <button v-if="hasData" @click="reset" class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    重新导入
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 flex overflow-hidden">
+            <!-- 左侧面板：导入与树视图 -->
+            <section class="flex-1 flex flex-col bg-white border-r border-slate-200 relative">
+                <!-- 欢迎/导入界面 -->
+                <div v-if="!hasData" class="flex-1 flex flex-col items-center justify-center p-8 bg-[#fdfdff]">
+                    <div class="w-full max-w-2xl space-y-8 animate-slide-in">
+                        <div class="text-center">
+                            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">可视化您的依赖关系</h2>
+                            <p class="text-slate-500 mt-2">粘贴 <code>gradle dependencies</code> 命令的输出即可开始分析</p>
+                        </div>
+                        
+                        <div class="relative group">
+                            <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                            <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xl">
+                                <textarea v-model="rawInput" 
+                                    class="w-full h-[400px] p-6 mono text-sm focus:outline-none resize-none placeholder:text-slate-300" 
+                                    placeholder="例如：
++--- org.springframework.boot:spring-boot-starter:3.1.0
+|    +--- org.springframework.boot:spring-boot:3.1.0
+|    |    +--- org.springframework:spring-core:6.0.9
+..."></textarea>
+                                <div class="bg-slate-50 border-t border-slate-100 px-6 py-4 flex justify-between items-center">
+                                    <span class="text-xs text-slate-400 font-medium italic">支持 ANSI 颜色代码和版本冲突识别</span>
+                                    <button @click="process" class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95">
+                                        开始分析
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 树视图 -->
+                <div v-else class="flex-1 flex flex-col h-full overflow-hidden">
+                    <!-- 搜索栏 -->
+                    <div class="p-4 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+                        <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 group focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-50 transition-all">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 group-focus-within:text-blue-500"></i>
+                            <input v-model="searchQuery" @keyup.enter="nextMatch" 
+                                type="text" placeholder="搜索 Artifact、Group 或版本..." 
+                                class="flex-1 bg-transparent border-none text-sm font-medium focus:ring-0 outline-none">
+                            
+                            <div v-if="matchCount > 0" class="flex items-center gap-2 border-l border-slate-200 pl-3">
+                                <span class="text-[10px] font-bold mono text-slate-500 tracking-tighter">
+                                    {{currentMatchIdx + 1}} / {{matchCount}}
+                                </span>
+                                <div class="flex gap-1">
+                                    <button @click="prevMatch" class="p-1 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+                                    <button @click="nextMatch" class="p-1 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 虚拟树视图 -->
+                    <div id="virtual-tree-root" ref="scrollContainer" @scroll="handleScroll">
+                        <div :style="{ height: totalHeight + 'px' }" class="relative">
+                            <div class="virtual-tree-content px-6 py-4" :style="{ transform: `translateY(${offsetY}px)` }">
+                                <div v-for="(node, idx) in visibleNodes" :key="node.originalIdx"
+                                     :id="'node-' + node.originalIdx"
+                                     @click="selectNode(node.originalIdx)"
+                                     class="tree-line group cursor-pointer flex items-center gap-1 py-1 px-2"
+                                     :class="[selectedIdx === node.originalIdx ? 'is-selected' : '', node.isInPath ? 'in-path' : '']">
+                                    
+                                    <span class="node-prefix mono text-[13px] whitespace-pre">{{node.prefix}}</span>
+                                    
+                                    <div class="flex items-center gap-2 py-0.5 px-2 rounded-md transition-all"
+                                         :class="{'match-search': isMatch(node), 'current-focus': isCurrentFocus(node.originalIdx)}">
+                                        <span class="text-[10px] opacity-40 font-mono font-bold tracking-tight">{{node.group}}:</span>
+                                        <span class="font-semibold text-[13px] tracking-tight">{{node.artifact}}</span>
+                                        <span class="text-[11px] font-mono opacity-60 px-1.5 bg-slate-100 rounded group-hover:bg-white transition-colors">{{node.version}}</span>
+                                        
+                                        <span v-if="node.hasConflict" class="flex items-center gap-1 text-[11px] font-bold text-red-500 ml-1">
+                                            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                                            {{node.targetVersion}}
+                                        </span>
+                                        
+                                        <span v-if="node.isOmitted" class="text-[10px] font-bold text-slate-300 ml-1">(*)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 右侧面板：洞察与详情 -->
+            <aside class="w-[480px] flex flex-col bg-slate-50/50 overflow-y-auto border-l border-slate-200">
+                <div class="p-6 space-y-6">
+                    <!-- 命令生成器卡片 -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                        <div class="p-5 cursor-pointer hover:bg-slate-50 transition-colors" @click="generatorExpanded = !generatorExpanded">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                                        <i data-lucide="terminal" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-800">Gradle 命令生成器</h3>
+                                        <p class="text-[11px] text-slate-500 font-medium">快速生成依赖分析命令</p>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" :class="['w-4 h-4 text-slate-400 transition-transform', generatorExpanded ? 'rotate-180' : '']"></i>
+                            </div>
+                        </div>
+
+                        <div :class="['collapsible-content', !generatorExpanded ? 'collapsed' : '']" style="max-height: 1200px;">
+                            <div class="p-5 border-t border-slate-50 space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">模块名称</label>
+                                    <input v-model="moduleName" type="text" placeholder="例如：app, service-core" 
+                                        class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm mono focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">依赖配置 (Configuration)</label>
+                                    <select v-model="selectedConfig" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="">-- 全部配置 --</option>
+                                        <option value="compileClasspath">compileClasspath (编译时)</option>
+                                        <option value="runtimeClasspath">runtimeClasspath (运行时)</option>
+                                        <option value="implementation">implementation</option>
+                                        <option value="api">api</option>
+                                    </select>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-white transition-all group">
+                                        <input type="checkbox" v-model="extraParams.insight" class="w-4 h-4 text-blue-600 rounded-md border-slate-300 focus:ring-blue-500">
+                                        <span class="text-xs font-semibold text-slate-600 group-hover:text-slate-900">深度洞察模式</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-white transition-all group">
+                                        <input type="checkbox" v-model="extraParams.writeToFile" class="w-4 h-4 text-blue-600 rounded-md border-slate-300 focus:ring-blue-500">
+                                        <span class="text-xs font-semibold text-slate-600 group-hover:text-slate-900">输出到文件</span>
+                                    </label>
+                                </div>
+
+                                <div v-if="extraParams.insight" class="animate-slide-in">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">洞察对象 (Dependency)</label>
+                                    <input v-model="insightDependency" type="text" placeholder="例如：log4j-core" 
+                                        class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm mono focus:bg-white focus:border-blue-500 outline-none transition-all">
+                                </div>
+
+                                <div class="pt-4 space-y-3">
+                                    <div v-for="(cmd, idx) in generatedCommands" :key="idx" class="bg-slate-900 rounded-xl p-4 relative group">
+                                        <div class="text-[9px] font-bold text-blue-400 uppercase mb-2">{{cmd.label}}</div>
+                                        <code class="block text-[11px] text-slate-300 mono break-all pr-12">{{cmd.command}}</code>
+                                        <button @click="copyToClipboard(cmd.command, idx)" 
+                                            class="absolute right-3 top-3 p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                            <i :data-lucide="copiedIndex === idx ? 'check' : 'copy'" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                    <div v-if="generatedCommands.length === 0" class="text-center py-6">
+                                        <p class="text-xs text-slate-400 italic">填写模块名称后生成命令</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 依赖详情卡片 -->
+                    <div v-if="selectedNode" class="space-y-6 animate-slide-in">
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                            
+                            <div class="relative">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase">组件详情</span>
+                                    <span v-if="selectedNode.hasConflict" class="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase animate-pulse">版本冲突</span>
+                                </div>
+                                
+                                <h2 class="text-xl font-extrabold text-slate-900 break-words">{{selectedNode.artifact}}</h2>
+                                <p class="text-xs text-slate-400 mono mt-1 break-all">{{selectedNode.group}}</p>
+
+                                <div class="grid grid-cols-2 gap-4 mt-8">
+                                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase">解析版本 (Resolved)</span>
+                                        <div class="text-lg font-bold mono text-slate-900 mt-1">{{selectedNode.targetVersion || selectedNode.version}}</div>
+                                    </div>
+                                    <div v-if="selectedNode.hasConflict" class="bg-red-50 rounded-2xl p-4 border border-red-100">
+                                        <span class="text-[9px] font-bold text-red-400 uppercase">请求版本 (Requested)</span>
+                                        <div class="text-lg font-bold mono text-red-400 line-through mt-1">{{selectedNode.version}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 引用链溯源 -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <i data-lucide="git-branch" class="w-4 h-4 text-blue-500"></i>
+                                引用链溯源 (Reference Chain)
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div v-for="(pathItem, i) in currentPath" :key="i" class="flex gap-4 group">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-2.5 h-2.5 rounded-full border-2 border-blue-500 bg-white group-hover:bg-blue-500 transition-colors"></div>
+                                        <div v-if="i < currentPath.length - 1" class="w-0.5 h-full bg-slate-100 group-hover:bg-blue-100 transition-colors"></div>
+                                    </div>
+                                    <div class="pb-6">
+                                        <div class="text-[10px] font-bold text-slate-300 mb-1">层级 {{i}}</div>
+                                        <div class="text-xs font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">{{pathItem}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 其他实例 -->
+                        <div v-if="instances.length > 0" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <i data-lucide="copy" class="w-4 h-4 text-indigo-500"></i>
+                                项目中的其他实例
+                            </h3>
+                            <div class="space-y-3">
+                                <div v-for="(inst, i) in instances" :key="i" class="p-3 bg-slate-50 border border-slate-100 rounded-xl hover:border-indigo-200 transition-all">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[11px] font-bold text-indigo-600 mono">{{inst.v}}</span>
+                                        <span class="text-[10px] font-medium text-slate-400">来自 {{inst.parent}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else-if="hasData" class="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-40">
+                        <i data-lucide="mouse-pointer-2" class="w-12 h-12 text-slate-300 mb-4"></i>
+                        <p class="text-sm font-medium text-slate-500">在左侧树中选择一个节点以查看详细情报</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, nextTick, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const rawInput = ref('');
+                const hasData = ref(false);
+                const treeData = ref([]);
+                const searchQuery = ref('');
+                const selectedIdx = ref(-1);
+                const currentMatchIdx = ref(0);
+                
+                const generatorExpanded = ref(true);
+                const moduleName = ref('');
+                const selectedConfig = ref('');
+                const extraParams = ref({ insight: false, writeToFile: false });
+                const insightDependency = ref('');
+                const copiedIndex = ref(-1);
+
+                // 虚拟列表状态
+                const itemHeight = 32; // px
+                const containerHeight = ref(800);
+                const scrollTop = ref(0);
+                const scrollContainer = ref(null);
+
+                const totalHeight = computed(() => treeData.value.length * itemHeight);
+                const visibleCount = computed(() => Math.ceil(containerHeight.value / itemHeight) + 10);
+                const startIndex = computed(() => Math.floor(scrollTop.value / itemHeight));
+                const offsetY = computed(() => startIndex.value * itemHeight);
+                
+                const visibleNodes = computed(() => {
+                    return treeData.value.slice(startIndex.value, startIndex.value + visibleCount.value).map((node, i) => ({
+                        ...node,
+                        originalIdx: startIndex.value + i
+                    }));
+                });
+
+                const handleScroll = (e) => {
+                    scrollTop.value = e.target.scrollTop;
+                };
+
+                onMounted(() => {
+                    lucide.createIcons();
+                    window.addEventListener('resize', () => {
+                        if (scrollContainer.value) containerHeight.value = scrollContainer.value.clientHeight;
+                    });
+                });
+
+                const matchIndices = computed(() => {
+                    if (!searchQuery.value || searchQuery.value.length < 2) return [];
+                    const q = searchQuery.value.toLowerCase();
+                    return treeData.value.reduce((acc, node, idx) => {
+                        if (node.fullName.toLowerCase().includes(q)) acc.push(idx);
+                        return acc;
+                    }, []);
+                });
+                const matchCount = computed(() => matchIndices.value.length);
+
+                watch(searchQuery, () => {
+                    currentMatchIdx.value = 0;
+                    if (matchCount.value > 0) scrollToNode(matchIndices.value[0]);
+                });
+
+                const scrollToNode = (idx) => {
+                    selectedIdx.value = idx;
+                    updatePathHighlight(idx);
+                    
+                    nextTick(() => {
+                        const targetScroll = idx * itemHeight - (containerHeight.value / 2) + (itemHeight / 2);
+                        if (scrollContainer.value) {
+                            scrollContainer.value.scrollTo({
+                                top: Math.max(0, targetScroll),
+                                behavior: 'smooth'
+                            });
+                        }
+                        setTimeout(() => lucide.createIcons(), 100);
+                    });
+                };
+
+                const updatePathHighlight = (idx) => {
+                    treeData.value.forEach(n => n.isInPath = false);
+                    if (idx < 0) return;
+                    let currentLevel = treeData.value[idx].level;
+                    for (let i = idx; i >= 0; i--) {
+                        if (treeData.value[i].level < currentLevel) {
+                            treeData.value[i].isInPath = true;
+                            currentLevel = treeData.value[i].level;
+                        }
+                    }
+                };
+
+                const process = () => {
+                    const lines = rawInput.value.split('\n');
+                    const tree = [];
+                    const pathStack = [];
+                    
+                    lines.forEach((line) => {
+                        const cleaned = line.replace(/\x1B\[[0-9;]*m/g, '').trimEnd();
+                        if (!cleaned) return;
+
+                        const match = cleaned.match(/^([| \t+-\\]*)([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]+)(.*)$/);
+                        
+                        if (match) {
+                            const [_, symbols, group, artifact, version, rest] = match;
+                            const level = symbols.length / 5;
+                            const targetVersion = rest.includes('->') ? rest.match(/->\s+([\d\.]+[\w\.-]*)/)?.[1] : null;
+                            
+                            const node = {
+                                level, 
+                                prefix: symbols.replace(/[a-zA-Z]/g, ''),
+                                group, artifact, version, targetVersion,
+                                fullName: `${group}:${artifact}`,
+                                hasConflict: rest.includes('->'),
+                                isOmitted: rest.includes('(*)'),
+                                isInPath: false,
+                                parentPath: [...pathStack.slice(0, level)]
+                            };
+                            pathStack[level] = artifact;
+                            tree.push(node);
+                        }
+                    });
+
+                    treeData.value = tree;
+                    hasData.value = true;
+                    generatorExpanded.value = false;
+                    
+                    nextTick(() => {
+                        if (scrollContainer.value) containerHeight.value = scrollContainer.value.clientHeight;
+                        lucide.createIcons();
+                    });
+                };
+
+                const generatedCommands = computed(() => {
+                    const commands = [];
+                    if (!moduleName.value.trim()) return commands;
+                    const module = moduleName.value.trim();
+                    const bin = './gradlew';
+                    
+                    let baseCmd = `${bin} :${module}:dependencies`;
+                    if (selectedConfig.value) baseCmd += ` --configuration ${selectedConfig.value}`;
+                    if (extraParams.value.writeToFile) baseCmd += ` > deps.txt`;
+                    commands.push({ label: '📦 基础依赖树命令', command: baseCmd });
+                    
+                    if (extraParams.value.insight && insightDependency.value.trim()) {
+                        let insightCmd = `${bin} :${module}:dependencyInsight --dependency ${insightDependency.value.trim()}`;
+                        if (selectedConfig.value) insightCmd += ` --configuration ${selectedConfig.value}`;
+                        commands.push({ label: '🔍 深度分析命令 (Insight)', command: insightCmd });
+                    }
+                    return commands;
+                });
+                
+                const copyToClipboard = async (text, idx) => {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        copiedIndex.value = idx;
+                        setTimeout(() => { copiedIndex.value = -1; }, 2000);
+                    } catch (err) {
+                        const el = document.createElement('textarea');
+                        el.value = text;
+                        document.body.appendChild(el);
+                        el.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(el);
+                        copiedIndex.value = idx;
+                        setTimeout(() => { copiedIndex.value = -1; }, 2000);
+                    }
+                };
+
+                const reset = () => {
+                    hasData.value = false;
+                    rawInput.value = '';
+                    treeData.value = [];
+                    selectedIdx.value = -1;
+                    searchQuery.value = '';
+                    generatorExpanded.value = true;
+                    nextTick(() => lucide.createIcons());
+                };
+
+                return {
+                    rawInput, hasData, treeData, searchQuery, selectedIdx, currentMatchIdx, matchCount,
+                    moduleName, selectedConfig, extraParams, insightDependency, generatedCommands, copiedIndex,
+                    generatorExpanded, process, reset, copyToClipboard,
+                    // 虚拟列表
+                    scrollContainer, handleScroll, visibleNodes, totalHeight, offsetY,
+                    // 逻辑
+                    nextMatch: () => { if (matchCount.value > 0) { currentMatchIdx.value = (currentMatchIdx.value + 1) % matchCount.value; scrollToNode(matchIndices.value[currentMatchIdx.value]); }},
+                    prevMatch: () => { if (matchCount.value > 0) { currentMatchIdx.value = (currentMatchIdx.value - 1 + matchCount.value) % matchCount.value; scrollToNode(matchIndices.value[currentMatchIdx.value]); }},
+                    selectNode: (idx) => { selectedIdx.value = idx; updatePathHighlight(idx); nextTick(() => lucide.createIcons()); },
+                    isMatch: (n) => searchQuery.value && n.fullName.toLowerCase().includes(searchQuery.value.toLowerCase()),
+                    isCurrentFocus: (idx) => matchIndices.value[currentMatchIdx.value] === idx && searchQuery.value,
+                    selectedNode: computed(() => treeData.value[selectedIdx.value]),
+                    currentPath: computed(() => { const n = treeData.value[selectedIdx.value]; return n ? [...n.parentPath, n.artifact] : []; }),
+                    instances: computed(() => { const n = treeData.value[selectedIdx.value]; if (!n) return []; return treeData.value.filter(item => item.fullName === n.fullName && item !== n).map(i => ({v: i.targetVersion || i.version, parent: i.parentPath[i.parentPath.length-1] || 'Root'})); })
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
