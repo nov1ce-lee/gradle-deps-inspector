@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aether Gradle Insight - 深度依赖分析工具</title>
+    <title>Gradle 依赖分析助手</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -84,8 +84,8 @@
                     <i data-lucide="layers-2" class="w-5 h-5 text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-sm font-bold tracking-tight text-slate-900">Aether Gradle <span class="text-blue-600">Insight</span></h1>
-                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">下一代依赖智能分析平台</p>
+                    <h1 class="text-sm font-bold tracking-tight text-slate-900">Gradle 依赖 <span class="text-blue-600">分析助手</span></h1>
+                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">项目依赖可视化与冲突检测</p>
                 </div>
             </div>
             
@@ -108,8 +108,8 @@
                 <div v-if="!hasData" class="flex-1 flex flex-col items-center justify-center p-8 bg-[#fdfdff]">
                     <div class="w-full max-w-2xl space-y-8 animate-slide-in">
                         <div class="text-center">
-                            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">可视化您的依赖关系</h2>
-                            <p class="text-slate-500 mt-2">粘贴 <code>gradle dependencies</code> 命令的输出即可开始分析</p>
+                            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">导入 Gradle 依赖数据</h2>
+                            <p class="text-slate-500 mt-2">请在下方粘贴 <code>gradle dependencies</code> 命令的控制台输出</p>
                         </div>
                         
                         <div class="relative group">
@@ -187,7 +187,7 @@
                 </div>
             </section>
 
-            <!-- 右侧面板：洞察与详情 -->
+            <!-- 右侧面板：分析详情 -->
             <aside class="w-[480px] flex flex-col bg-slate-50/50 overflow-y-auto border-l border-slate-200">
                 <div class="p-6 space-y-6">
                     <!-- 命令生成器卡片 -->
@@ -200,7 +200,7 @@
                                     </div>
                                     <div>
                                         <h3 class="text-sm font-bold text-slate-800">Gradle 命令生成器</h3>
-                                        <p class="text-[11px] text-slate-500 font-medium">快速生成依赖分析命令</p>
+                                        <p class="text-[11px] text-slate-500 font-medium">快速生成常用分析命令</p>
                                     </div>
                                 </div>
                                 <i data-lucide="chevron-down" :class="['w-4 h-4 text-slate-400 transition-transform', generatorExpanded ? 'rotate-180' : '']"></i>
@@ -229,7 +229,7 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <label class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-white transition-all group">
                                         <input type="checkbox" v-model="extraParams.insight" class="w-4 h-4 text-blue-600 rounded-md border-slate-300 focus:ring-blue-500">
-                                        <span class="text-xs font-semibold text-slate-600 group-hover:text-slate-900">深度洞察模式</span>
+                                        <span class="text-xs font-semibold text-slate-600 group-hover:text-slate-900">依赖详情分析</span>
                                     </label>
                                     <label class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-white transition-all group">
                                         <input type="checkbox" v-model="extraParams.writeToFile" class="w-4 h-4 text-blue-600 rounded-md border-slate-300 focus:ring-blue-500">
@@ -238,7 +238,7 @@
                                 </div>
 
                                 <div v-if="extraParams.insight" class="animate-slide-in">
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">洞察对象 (Dependency)</label>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">分析对象 (Dependency)</label>
                                     <input v-model="insightDependency" type="text" placeholder="例如：log4j-core" 
                                         class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm mono focus:bg-white focus:border-blue-500 outline-none transition-all">
                                 </div>
@@ -291,7 +291,7 @@
                         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                             <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
                                 <i data-lucide="git-branch" class="w-4 h-4 text-blue-500"></i>
-                                引用链溯源 (Reference Chain)
+                                依赖引用链 (Reference Chain)
                             </h3>
                             
                             <div class="space-y-4">
@@ -327,7 +327,7 @@
 
                     <div v-else-if="hasData" class="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-40">
                         <i data-lucide="mouse-pointer-2" class="w-12 h-12 text-slate-300 mb-4"></i>
-                        <p class="text-sm font-medium text-slate-500">在左侧树中选择一个节点以查看详细情报</p>
+                        <p class="text-sm font-medium text-slate-500">在左侧树中选择节点查看详细信息</p>
                     </div>
                 </div>
             </aside>
