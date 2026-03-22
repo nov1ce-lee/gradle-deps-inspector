@@ -114,9 +114,11 @@ body {
 aside h2 { font-size: 28px !important; } /* Artifact ID */
 aside p { font-size: 18px !important; } /* Group ID */
 aside .text-\[9px\] { font-size: 16px !important; } /* 标签文字如“解析版本” */
-aside .text-lg { font-size: 22px !important; } /* 版本号数字 */
-aside h3 { font-size: 18px !important; } /* 小标题 */
-aside .text-xs { font-size: 16px !important; } /* 列表文字 */
+aside .text-\[10px\] { font-size: 16px !important; } /* 层级标签文字如“层级 0”、“来自 XXX” */
+aside .text-\[11px\] { font-size: 18px !important; } /* 列表中出现的版本号数字 */
+aside .text-lg { font-size: 22px !important; } /* 主版本号数字 */
+aside h3 { font-size: 20px !important; } /* 小标题如“引用链溯源” */
+aside .text-xs { font-size: 18px !important; } /* 列表正文内容 */
 
 /* 玻璃拟态效果 */
 .glass {
