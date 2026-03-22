@@ -16,10 +16,10 @@ body {
     background-color: var(--bg-canvas);
     color: var(--text-main);
     letter-spacing: -0.01em;
-    font-size: 20px; /* 再次整体放大 25% (从 16px 到 20px) */
+    font-size: 24px; /* 进一步增大字号 (从 20px 增加到 24px) */
 }
 
-.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
 
 /* 自定义滚动条 */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -27,12 +27,14 @@ body {
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* 树节点样式 */
+/* 树节点样式：大幅压缩行间距，保持大字号下的紧凑感 */
 .tree-line {
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 8px;
-    margin: 1px 0; /* 减小间距 */
-    height: 48px; /* 重新调整高度，使整体更紧凑但仍比原版大 */
+    border-radius: 6px;
+    margin: 0; /* 彻底移除外边距 */
+    height: 40px; /* 大幅压缩高度，使字号充满行高 (紧凑布局) */
+    display: flex;
+    align-items: center;
 }
 .tree-line:hover { background-color: var(--brand-light); }
 .is-selected { background-color: var(--brand) !important; color: white !important; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3); }
