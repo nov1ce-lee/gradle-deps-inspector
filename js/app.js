@@ -17,7 +17,7 @@ createApp({
         const copiedIndex = ref(-1);
 
         // 虚拟列表状态
-        const itemHeight = 55; // px (再次放大 25%: 44 * 1.25)
+        const itemHeight = 48; // 调整为更紧凑的高度 (原版 32 -> 优化 44 -> 当前 48)
         const containerHeight = ref(800);
         const scrollTop = ref(0);
         const scrollContainer = ref(null);
