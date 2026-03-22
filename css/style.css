@@ -72,16 +72,19 @@ body {
 }
 
 .is-selected .node-prefix { color: #93c5fd; }
-.is-selected .text-slate-400, .is-selected .opacity-40, .is-selected .opacity-60 { color: #60a5fa !important; opacity: 1; }
+/* 优化选中状态下的对比度：使用深蓝色 */
+.is-selected .text-slate-400, .is-selected .opacity-40, .is-selected .opacity-60 { color: #3b82f6 !important; opacity: 0.8; }
 .is-selected .bg-slate-100 { background-color: #dbeafe !important; color: #1e40af !important; }
 
 /* 搜索高亮：更柔和的背景 + 底部强调线 */
-.match-search {
+.match-search { 
     background-color: #f0fdf4 !important; 
     border-bottom: 2px solid #22c55e !important;
     border-radius: 4px;
 }
 .match-search span { color: #166534 !important; }
+/* 优化搜索高亮下的对比度：使用深绿色 */
+.match-search .text-slate-400, .match-search .opacity-40, .match-search .opacity-60 { color: #15803d !important; opacity: 0.7; }
 .match-search .bg-slate-100 { background-color: #dcfce7 !important; color: #166534 !important; }
 
 /* 当前聚焦：醒目的绿色圆点/边框 */
@@ -94,9 +97,9 @@ body {
 .current-focus span, .current-focus .bg-slate-100 { color: white !important; background-color: rgba(255, 255, 255, 0.2) !important; }
 
 /* 依赖树内部字体：精调字号与间距 */
-.tree-line .text-\[10px\] { font-size: 0.85rem !important; opacity: 0.4; font-weight: 400; font-family: 'Inter', sans-serif; } 
+.tree-line .text-\[10px\] { font-size: 0.85rem !important; opacity: 0.6; font-weight: 400; font-family: 'Inter', sans-serif; } 
 .tree-line .text-\[13px\] { font-size: 1rem !important; font-weight: 600; font-family: 'Inter', sans-serif; letter-spacing: -0.01em; } 
-.tree-line .text-\[11px\] { font-size: 0.85rem !important; opacity: 0.5; font-family: 'JetBrains Mono', monospace; } 
+.tree-line .text-\[11px\] { font-size: 0.85rem !important; opacity: 0.7; font-family: 'JetBrains Mono', monospace; } 
 .tree-line .node-prefix { 
     font-size: 1rem !important; 
     line-height: 36px; 
@@ -167,6 +170,53 @@ aside .text-xs { font-size: 16px !important; } /* 列表文字 */
 /* 详情面板动画优化 */
 aside {
     transition: width 0.05s linear;
+}
+
+/* 命令生成器代码块优化 */
+.command-box {
+    background-color: #0f172a;
+    border-radius: 12px;
+    padding: 1rem;
+    position: relative;
+    border: 1px solid #1e293b;
+}
+
+.command-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    word-break: break-all;
+    white-space: pre-wrap;
+    padding-right: 2.5rem;
+}
+
+.copy-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+    padding: 0.5rem;
+    background-color: #1e293b;
+    color: #94a3b8;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    transition: all 0.2s;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.copy-btn:hover {
+    background-color: #334155;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+.copy-btn.copied {
+    background-color: #059669;
+    color: white;
+    border-color: #10b981;
 }
 
 /* 虚拟列表容器：修复滚动失效 */

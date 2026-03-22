@@ -188,11 +188,12 @@
                                 </div>
 
                                 <div class="pt-4 space-y-3">
-                                    <div v-for="(cmd, idx) in generatedCommands" :key="idx" class="bg-slate-900 rounded-xl p-4 relative group">
-                                        <div class="text-[9px] font-bold text-blue-400 uppercase mb-2">{{cmd.label}}</div>
-                                        <code class="block text-[11px] text-slate-300 mono break-all pr-12">{{cmd.command}}</code>
+                                    <div v-for="(cmd, idx) in generatedCommands" :key="idx" class="command-box group">
+                                        <div class="text-[10px] font-bold text-blue-400 uppercase mb-2 tracking-wider">{{cmd.label}}</div>
+                                        <code class="command-code">{{cmd.command}}</code>
                                         <button @click="copyToClipboard(cmd.command, idx)" 
-                                            class="absolute right-3 top-3 p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                            :class="['copy-btn', copiedIndex === idx ? 'copied' : '']"
+                                            title="复制到剪贴板">
                                             <i :data-lucide="copiedIndex === idx ? 'check' : 'copy'" class="w-4 h-4"></i>
                                         </button>
                                     </div>
