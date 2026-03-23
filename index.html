@@ -194,7 +194,13 @@
                                         <button @click="copyToClipboard(cmd.command, idx)" 
                                             :class="['copy-btn', copiedIndex === idx ? 'copied' : '']"
                                             title="复制到剪贴板">
-                                            <i :data-lucide="copiedIndex === idx ? 'check' : 'copy'" class="w-4 h-4"></i>
+                                            <!-- 使用 SVG 路径确保图标在 Vue 渲染中始终可见且响应式 -->
+                                            <svg v-if="copiedIndex !== idx" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                            </svg>
+                                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                                                <polyline points="20 6 9 17 4 12"/>
+                                            </svg>
                                         </button>
                                     </div>
                                     <div v-if="generatedCommands.length === 0" class="text-center py-6">
